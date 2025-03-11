@@ -1,0 +1,9 @@
+{
+    "Rom File Path": "roms/JinglesDefense/jdef.iso",
+    "Expected Rom SHA1": "EEC4534631803AAA462BE42486A2EE736363E0BC",
+    "Bios File Path": "panafz1.bin",
+    "Initial State File": "",
+    "Disable State Blocks": [],
+    "Controller 1 Type": "Joypad",
+    "Controller 2 Type": "None"
+}

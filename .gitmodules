@@ -1,0 +1,6 @@
+[submodule "extern/jaffarCommon"]
+	path = extern/jaffarCommon
+	url = https://github.com/SergioMartin86/jaffarCommon.git
+[submodule "source/core/ppsspp"]
+	path = source/core/ppsspp
+	url = https://github.com/hrydgard/ppsspp.git
