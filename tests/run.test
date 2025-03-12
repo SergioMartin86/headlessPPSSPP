@@ -1,6 +1,6 @@
 {
-    "Rom File Path": "test.bin",
-    "Expected Rom SHA1": "DA39A3EE5E6B4B0D3255BFEF95601890AFD80709",
+    "Rom File Path": "roms/vitaarea.zip",
+    "Expected Rom SHA1": "E8759ACDF397DAD9D924A37467B48655CA15E927",
     "Bios File Path": "",
     "Initial State File": "",
     "Disable State Blocks": [],

@@ -259,6 +259,13 @@ class EmuInstance
     // if (cmd == RETRO_ENVIRONMENT_SET_PIXEL_FORMAT) { *((vdlp_pixel_format_e*) data) = VDLP_PIXEL_FORMAT_XRGB8888; return true; }
     if (cmd == RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY) { return true; }
     if (cmd == RETRO_ENVIRONMENT_GET_SAVE_DIRECTORY) { return true; } 
+    if (cmd == RETRO_ENVIRONMENT_GET_CORE_OPTIONS_VERSION) { return false; }
+    if (cmd == RETRO_ENVIRONMENT_SET_VARIABLES) { return false; }
+    if (cmd == RETRO_ENVIRONMENT_SET_CORE_OPTIONS_UPDATE_DISPLAY_CALLBACK) { return false; }
+    if (cmd == RETRO_ENVIRONMENT_SET_INPUT_DESCRIPTORS) { return false; }
+    if (cmd == RETRO_ENVIRONMENT_SET_CONTROLLER_INFO) { return false; }
+    if (cmd == RETRO_ENVIRONMENT_GET_INPUT_BITMASKS) { return false; }
+    if (cmd == RETRO_ENVIRONMENT_GET_USERNAME) { return false; }
     
     JAFFAR_THROW_LOGIC("Unrecognized environment callback command: %u\n", cmd);
 

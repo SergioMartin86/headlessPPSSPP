@@ -784,7 +784,7 @@ ppssppCompileArgs = [
 
  ppssppDependency = declare_dependency(
   compile_args        : [  ppssppCompileArgs ],
-  link_args           : [ '-lz' ],
+  link_args           : [  ],
   include_directories : include_directories(ppssppIncludeDirs),
   sources             : [ ppssppSrc ],
   dependencies        : [  
