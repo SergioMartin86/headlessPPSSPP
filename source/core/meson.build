@@ -688,7 +688,6 @@ ppssppSrc =  [
 	'ppsspp/ext/miniupnp/miniupnpc/src/miniupnpc.c',
 	'ppsspp/ext/miniupnp/miniupnpc/src/miniwget.c',
 	'ppsspp/ext/miniupnp/miniupnpc/src/minixml.c',
-	'ppsspp/ext/miniupnp/miniupnpc/src/minixmlvalid.c',
 	'ppsspp/ext/miniupnp/miniupnpc/src/portlistingparse.c',
 	'ppsspp/ext/miniupnp/miniupnpc/src/receivedata.c',
 	'ppsspp/ext/miniupnp/miniupnpc/src/upnpcommands.c',
