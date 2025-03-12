@@ -448,7 +448,6 @@ ppssppSrc =  [
 	'ppsspp/GPU/Common/VertexDecoderX86.cpp',
 	'ppsspp/libretro/libretro.cpp',
 	'ppsspp/libretro/LibretroGraphicsContext.cpp',
-	'ppsspp/git-version.cpp',
 	'ppsspp/ext/libzip/zip_add.c',
 	'ppsspp/ext/libzip/zip_add_dir.c',
 	'ppsspp/ext/libzip/zip_add_entry.c',
@@ -752,7 +751,6 @@ ppssppIncludeDirs = [
   'ppsspp/ext/libpng17',
   'ppsspp/ext/zstd/lib',
   'ppsspp/ext/libchdr/include',
-  'ppsspp/build',
   'ppsspp/ext/miniupnp/miniupnpc/src',
   'ppsspp/ext/miniupnp/miniupnpc/include',
   'ppsspp/ext/snappy/',
@@ -760,7 +758,8 @@ ppssppIncludeDirs = [
   'ppsspp/ext/cmake/cpu_features/../../cpu_features/include',
   'ppsspp/ext/libchdr/deps/lzma-22.01/include/',
   'ppsspp/ext/lua/',
-  'ppsspp/ffmpeg/linux/x86_64/include/'
+  'ppsspp/ffmpeg/linux/x86_64/include/',
+  'ppsspp/ext/miniupnp-build/'
 ]
 
 ppssppCompileArgs = [
@@ -777,6 +776,7 @@ ppssppCompileArgs = [
 	'-DARMIPS_USE_STD_FILESYSTEM',
 	'-DDYNAREC',
 	'-DHUF_DISABLE_FAST_DECODE',
+	'-DPPSSPP_GIT_VERSION=gitVersion'
 ]
 
 # ppsspp Core Configuration
