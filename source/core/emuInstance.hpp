@@ -115,12 +115,12 @@ class EmuInstance
     // bool        status = jaffarCommon::file::loadStringFromFile(romFileData, _romFilePath.c_str());
     // if (status == false) JAFFAR_THROW_LOGIC("Could not find/read from Rom file: %s\n", _romFilePath.c_str());
 
-    // struct retro_game_info game;
-    // game.path = _romFilePath.c_str();
+    struct retro_game_info game;
+    game.path = _romFilePath.c_str();
     // game.data = romFileData.data();
     // game.size = romFileData.size();
-    // auto loadResult = retro_load_game(&game);
-    // if (loadResult == false) JAFFAR_THROW_RUNTIME("Could not load game: '%s'\n", _romFilePath.c_str());
+    auto loadResult = retro_load_game(&game);
+    if (loadResult == false) JAFFAR_THROW_RUNTIME("Could not load game: '%s'\n", _romFilePath.c_str());
 
     // _videoBufferSize = VIDEO_HORIZONTAL_PIXELS * VIDEO_VERTICAL_PIXELS * sizeof(uint32_t);
     // _videoBuffer = (uint32_t*) malloc (_videoBufferSize);
@@ -256,7 +256,7 @@ class EmuInstance
     if (cmd == RETRO_ENVIRONMENT_SET_SERIALIZATION_QUIRKS) { return true; }
     if (cmd == RETRO_ENVIRONMENT_GET_VARIABLE) { _instance->configHandler((struct retro_variable *)data); return true; }
     if (cmd == RETRO_ENVIRONMENT_GET_VARIABLE_UPDATE) { return true; }
-    // if (cmd == RETRO_ENVIRONMENT_SET_PIXEL_FORMAT) { *((vdlp_pixel_format_e*) data) = VDLP_PIXEL_FORMAT_XRGB8888; return true; }
+    if (cmd == RETRO_ENVIRONMENT_SET_PIXEL_FORMAT) { *((retro_pixel_format*) data) = RETRO_PIXEL_FORMAT_XRGB8888; return true; }
     if (cmd == RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY) { return true; }
     if (cmd == RETRO_ENVIRONMENT_GET_SAVE_DIRECTORY) { return true; } 
     if (cmd == RETRO_ENVIRONMENT_GET_CORE_OPTIONS_VERSION) { return false; }
@@ -266,6 +266,9 @@ class EmuInstance
     if (cmd == RETRO_ENVIRONMENT_SET_CONTROLLER_INFO) { return false; }
     if (cmd == RETRO_ENVIRONMENT_GET_INPUT_BITMASKS) { return false; }
     if (cmd == RETRO_ENVIRONMENT_GET_USERNAME) { return false; }
+    if (cmd == RETRO_ENVIRONMENT_GET_LANGUAGE) { return false; }
+    if (cmd == RETRO_ENVIRONMENT_SET_CORE_OPTIONS_DISPLAY) { return false; }
+    if (cmd == RETRO_ENVIRONMENT_GET_PREFERRED_HW_RENDER) { return false; }
     
     JAFFAR_THROW_LOGIC("Unrecognized environment callback command: %u\n", cmd);
 
