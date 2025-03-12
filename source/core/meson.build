@@ -776,7 +776,8 @@ ppssppCompileArgs = [
 	'-DARMIPS_USE_STD_FILESYSTEM',
 	'-DDYNAREC',
 	'-DHUF_DISABLE_FAST_DECODE',
-	'-DPPSSPP_GIT_VERSION=gitVersion'
+	'-DPPSSPP_GIT_VERSION=gitVersion',
+	'-DZSTD_DISABLE_ASM'
 ]
 
 # ppsspp Core Configuration

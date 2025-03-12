@@ -72,7 +72,7 @@ class EmuInstance
     // if (input.reset) { retro_reset();  return; }
 
     // Running a single frame
-    retro_run();
+    // retro_run();
 
     // printf("%2X%2X%2X%2X\n", _memoryAreas.wram[0], _memoryAreas.wram[1], _memoryAreas.wram[2], _memoryAreas.wram[3]);
   }
@@ -93,7 +93,7 @@ class EmuInstance
   void initialize()
   {
     _instance = this;
-    // opera_lr_callbacks_set_environment(retro_environment_callback);
+    retro_set_environment(retro_environment_callback);
     // opera_lr_callbacks_set_input_poll(retro_input_poll_callback);
     // opera_lr_callbacks_set_audio_sample_batch(retro_audio_sample_batch_callback);
     // opera_lr_callbacks_set_video_refresh(retro_video_refresh_callback);
