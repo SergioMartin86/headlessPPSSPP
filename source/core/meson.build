@@ -652,7 +652,7 @@ ppssppSrc =  [
 	'ppsspp/ext/libchdr/deps/lzma-22.01/src/Sort.c',
 	'ppsspp/ext/libchdr/src/libchdr_bitstream.c',
 	'ppsspp/ext/libchdr/src/libchdr_cdrom.c',
-	'ppsspp/ext/libchdr/src/libchdr_chd.c',
+	'ppsspp/ext/libchdr_chd.c',
 	'ppsspp/ext/libchdr/src/libchdr_flac.c',
 	'ppsspp/ext/libchdr/src/libchdr_huffman.c',
 	'ppsspp/ext/cpu_features/src/filesystem.c',
