@@ -72,9 +72,6 @@ int main(int argc, char *argv[])
   std::string stateDisabledBlocksOutput;
   for (const auto& entry : stateDisabledBlocks) stateDisabledBlocksOutput += entry + std::string(" ");
   
-  // Getting Controller type
-  const auto controllerType = jaffarCommon::json::getString(configJs, "Controller Type");
-
   // Getting reproduce flag
   bool isReproduce = program.get<bool>("--reproduce");
 
@@ -227,6 +224,9 @@ int main(int argc, char *argv[])
 
   // If rendering enabled, then finalize it now
   if (disableRender == false) e.disableRendering();
+
+  // Finalizing emulator instance
+  e.finalize();
 
   // Ending ncurses window
   jaffarCommon::logger::finalizeTerminal();

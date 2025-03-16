@@ -24,20 +24,20 @@ struct MemorySizes
   size_t vram;
 };
 
-#define VIDEO_HORIZONTAL_PIXELS 320
-#define	VIDEO_VERTICAL_PIXELS 240
+#define VIDEO_HORIZONTAL_PIXELS 480
+#define	VIDEO_VERTICAL_PIXELS 270
 
 #define _AUDIO_MAX_SAMPLE_COUNT 4096
 
 extern "C"
 {
-//     void opera_lr_callbacks_set_audio_sample(retro_audio_sample_t cb);
-//     void opera_lr_callbacks_set_audio_sample_batch(retro_audio_sample_batch_t cb);
-//     void opera_lr_callbacks_set_environment(retro_environment_t cb);
-//     void opera_lr_callbacks_set_input_poll(retro_input_poll_t cb);
-//     void opera_lr_callbacks_set_input_state(retro_input_state_t cb);
-//     void opera_lr_callbacks_set_log_printf(retro_log_printf_t cb);
-//     void opera_lr_callbacks_set_video_refresh(retro_video_refresh_t cb);
+    void retro_set_audio_sample(retro_audio_sample_t cb);
+    void retro_set_audio_sample_batch(retro_audio_sample_batch_t cb);
+    void retro_set_environment(retro_environment_t cb);
+    void retro_set_input_poll(retro_input_poll_t cb);
+    void retro_set_input_state(retro_input_state_t cb);
+    void retro_set_log_printf(retro_log_printf_t cb);
+    void retro_set_video_refresh(retro_video_refresh_t cb);
     RETRO_API void *retro_get_memory_data(unsigned id);
     RETRO_API size_t retro_get_memory_size(unsigned id);
     void lr_input_device_set(const uint32_t port_, const uint32_t device_);
@@ -72,7 +72,7 @@ class EmuInstance
     // if (input.reset) { retro_reset();  return; }
 
     // Running a single frame
-    // retro_run();
+    retro_run();
 
     // printf("%2X%2X%2X%2X\n", _memoryAreas.wram[0], _memoryAreas.wram[1], _memoryAreas.wram[2], _memoryAreas.wram[3]);
   }
@@ -94,10 +94,10 @@ class EmuInstance
   {
     _instance = this;
     retro_set_environment(retro_environment_callback);
-    // opera_lr_callbacks_set_input_poll(retro_input_poll_callback);
-    // opera_lr_callbacks_set_audio_sample_batch(retro_audio_sample_batch_callback);
-    // opera_lr_callbacks_set_video_refresh(retro_video_refresh_callback);
-    // opera_lr_callbacks_set_input_state(retro_input_state_callback);
+    retro_set_input_poll(retro_input_poll_callback);
+    retro_set_audio_sample_batch(retro_audio_sample_batch_callback);
+    retro_set_video_refresh(retro_video_refresh_callback);
+    retro_set_input_state(retro_input_state_callback);
     retro_init();
 
     // // Setting state size
@@ -122,9 +122,9 @@ class EmuInstance
     auto loadResult = retro_load_game(&game);
     if (loadResult == false) JAFFAR_THROW_RUNTIME("Could not load game: '%s'\n", _romFilePath.c_str());
 
-    // _videoBufferSize = VIDEO_HORIZONTAL_PIXELS * VIDEO_VERTICAL_PIXELS * sizeof(uint32_t);
-    // _videoBuffer = (uint32_t*) malloc (_videoBufferSize);
-    // _audioBuffer = (uint16_t*) malloc (sizeof(uint16_t) * _AUDIO_MAX_SAMPLE_COUNT);
+    _videoBufferSize = VIDEO_HORIZONTAL_PIXELS * VIDEO_VERTICAL_PIXELS * sizeof(uint32_t);
+    _videoBuffer = (uint32_t*) malloc (_videoBufferSize);
+    _audioBuffer = (uint16_t*) malloc (sizeof(uint16_t) * _AUDIO_MAX_SAMPLE_COUNT);
 
     // // // printf("Game Title: %s\n", _emu->romTitle().c_str());
 
@@ -142,7 +142,11 @@ class EmuInstance
     //   _memoryAreas.vram = (uint8_t*)retro_get_memory_data(RETRO_MEMORY_VIDEO_RAM);
     //   _memorySizes.vram = retro_get_memory_size(RETRO_MEMORY_VIDEO_RAM);
     // }
+  }
 
+  void finalize()
+  {
+    retro_unload_game();
   }
 
   void initializeVideoOutput()
@@ -288,8 +292,8 @@ class EmuInstance
   {
   //  if (port == 0) return (_instance->_currentInput.port1 >> id) & 1;
   //  if (port == 1) return (_instance->_currentInput.port2 >> id) & 1;
-
-   JAFFAR_THROW_LOGIC("Unconfigured port in retro_input_state_callback: %u\n", port);
+  return 0;
+  //  JAFFAR_THROW_LOGIC("Unconfigured port in retro_input_state_callback: %u\n", port);
   }
 
   static __INLINE__ void RETRO_CALLCONV retro_log_printf_callback(enum retro_log_level level, const char *format, ...)

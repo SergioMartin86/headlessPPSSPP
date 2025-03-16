@@ -222,6 +222,9 @@ int main(int argc, char *argv[])
   // If saving hash, do it now
   if (hashOutputFile != "") jaffarCommon::file::saveStringToFile(std::string(hashStringBuffer), hashOutputFile.c_str());
 
+  // Finalizing emulator instance
+  e.finalize();
+
   // If reached this point, everything ran ok
   return 0;
 }

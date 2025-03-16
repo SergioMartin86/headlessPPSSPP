@@ -1,6 +1,6 @@
 {
-    "Rom File Path": "roms/vitaarea.zip",
-    "Expected Rom SHA1": "E8759ACDF397DAD9D924A37467B48655CA15E927",
+    "Rom File Path": "roms/Beta Bloc (USA) (PSP) (PSN).iso",
+    "Expected Rom SHA1": "DBA088C6F99F7F5B6E2DADEB43C42DBDCD871A51",
     "Bios File Path": "",
     "Initial State File": "",
     "Disable State Blocks": [],
