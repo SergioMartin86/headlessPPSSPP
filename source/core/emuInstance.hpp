@@ -233,16 +233,21 @@ class EmuInstance
 
   static __INLINE__ void RETRO_CALLCONV retro_video_refresh_callback(const void *data, unsigned width, unsigned height, size_t pitch)
   {
-    // printf("Video %p, w: %u, h: %u, p: %lu\n", data, width, height, pitch);
+    printf("Video %p, w: %u, h: %u, p: %lu\n", data, width, height, pitch);
+    size_t checksum = 0;
     for (size_t i = 0; i < height; i++)
-      memcpy(&_instance->_videoBuffer[i * width], &((uint8_t*)data)[i*pitch], sizeof(uint32_t) * width);
+     for (size_t j = 0; i < width; i++)
+     checksum += ((uint32_t*)data)[i*pitch + j];
+    printf("Video Checksum: 0x%lX\n", checksum);
+    // for (size_t i = 0; i < height; i++)
+    //   memcpy(&_instance->_videoBuffer[i * width], &((uint8_t*)data)[i*pitch], sizeof(uint32_t) * width);
   }
 
   static __INLINE__ size_t RETRO_CALLCONV retro_audio_sample_batch_callback(const int16_t *data, size_t frames)
   {
-    // printf("Audio frames: %lu\n", frames);
-    memcpy(_instance->_audioBuffer, data, sizeof(int16_t) * frames);
-    _instance->_audioSamples = frames;
+    printf("Audio frames: %lu\n", frames);
+    // memcpy(_instance->_audioBuffer, data, sizeof(int16_t) * frames);
+    // _instance->_audioSamples = frames;
     return frames;
   }
 
