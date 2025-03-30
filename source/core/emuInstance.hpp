@@ -298,10 +298,39 @@ class EmuInstance
 
   static __INLINE__ int16_t RETRO_CALLCONV retro_input_state_callback(unsigned port, unsigned device, unsigned index, unsigned id)
   {
-  //  if (port == 0) return (_instance->_currentInput.port1 >> id) & 1;
-  //  if (port == 1) return (_instance->_currentInput.port2 >> id) & 1;
-  return 0;
-  //  JAFFAR_THROW_LOGIC("Unconfigured port in retro_input_state_callback: %u\n", port);
+    if (device == RETRO_DEVICE_JOYPAD) switch (id)
+    {
+      case RETRO_DEVICE_ID_JOYPAD_UP: return _instance->_currentInput.up ? 1 : 0;
+      case RETRO_DEVICE_ID_JOYPAD_DOWN: return _instance->_currentInput.down ? 1 : 0;
+      case RETRO_DEVICE_ID_JOYPAD_LEFT: return _instance->_currentInput.left ? 1 : 0;
+      case RETRO_DEVICE_ID_JOYPAD_RIGHT: return _instance->_currentInput.right ? 1 : 0;
+      case RETRO_DEVICE_ID_JOYPAD_L: return _instance->_currentInput.ltrigger ? 1 : 0;
+      case RETRO_DEVICE_ID_JOYPAD_R: return _instance->_currentInput.rtrigger ? 1 : 0;
+      case RETRO_DEVICE_ID_JOYPAD_SELECT: return _instance->_currentInput.select ? 1 : 0;
+      case RETRO_DEVICE_ID_JOYPAD_START: return _instance->_currentInput.start ? 1 : 0;
+      case RETRO_DEVICE_ID_JOYPAD_X: return _instance->_currentInput.triangle ? 1 : 0;
+      case RETRO_DEVICE_ID_JOYPAD_Y: return _instance->_currentInput.square ? 1 : 0;
+      case RETRO_DEVICE_ID_JOYPAD_B: return _instance->_currentInput.cross ? 1 : 0;
+      case RETRO_DEVICE_ID_JOYPAD_A: return _instance->_currentInput.circle ? 1 : 0;
+      default: return 0;
+    }
+
+    if (device == RETRO_DEVICE_ANALOG) switch (id)
+    {
+        case RETRO_DEVICE_ID_ANALOG_X:
+          if (index == RETRO_DEVICE_INDEX_ANALOG_LEFT) return _instance->_currentInput.leftAnalogX; 
+          if (index == RETRO_DEVICE_INDEX_ANALOG_RIGHT) return _instance->_currentInput.rightAnalogX; 
+          return 0;
+  
+        case RETRO_DEVICE_ID_ANALOG_Y:
+          if (index == RETRO_DEVICE_INDEX_ANALOG_LEFT) return _instance->_currentInput.leftAnalogY; 
+          if (index == RETRO_DEVICE_INDEX_ANALOG_RIGHT) return _instance->_currentInput.rightAnalogY; 
+          return 0;
+
+        default: return 0;
+    }
+  
+    return 0;
   }
 
   static __INLINE__ void RETRO_CALLCONV retro_log_printf_callback(enum retro_log_level level, const char *format, ...)

@@ -8,32 +8,33 @@
 #include <jaffarCommon/json.hpp>
 #include <string>
 #include <sstream>
-#include <libretro.h>
 
 namespace jaffar
 {
 
-// enum JoypadKey {
-//   B       = 1 >> RETRO_DEVICE_ID_JOYPAD_B     ,
-//   Y       = 1 >> RETRO_DEVICE_ID_JOYPAD_Y     ,
-//   SELECT  = 1 >> RETRO_DEVICE_ID_JOYPAD_SELECT,
-//   START   = 1 >> RETRO_DEVICE_ID_JOYPAD_START ,
-//   UP      = 1 >> RETRO_DEVICE_ID_JOYPAD_UP    ,
-//   DOWN    = 1 >> RETRO_DEVICE_ID_JOYPAD_DOWN  ,
-//   LEFT    = 1 >> RETRO_DEVICE_ID_JOYPAD_LEFT  ,
-//   RIGHT   = 1 >> RETRO_DEVICE_ID_JOYPAD_RIGHT ,
-//   A       = 1 >> RETRO_DEVICE_ID_JOYPAD_A     ,
-//   X       = 1 >> RETRO_DEVICE_ID_JOYPAD_X     ,
-//   L       = 1 >> RETRO_DEVICE_ID_JOYPAD_L     ,
-//   R       = 1 >> RETRO_DEVICE_ID_JOYPAD_R     ,
-//   L2      = 1 >> RETRO_DEVICE_ID_JOYPAD_L2    ,
-//   R2      = 1 >> RETRO_DEVICE_ID_JOYPAD_R2    ,
-//   L3      = 1 >> RETRO_DEVICE_ID_JOYPAD_L3    ,
-//   R3      = 1 >> RETRO_DEVICE_ID_JOYPAD_R3    
-// };
-
 struct input_t
 {
+  // Player inputs
+  bool up = false;
+  bool down = false;
+  bool left = false;
+  bool right = false;
+  bool start = false;
+  bool select = false;
+  bool square = false;
+  bool triangle = false;
+  bool circle = false;
+  bool cross = false;
+  bool ltrigger = false;
+  bool rtrigger = false;
+  int32_t rightAnalogX = 0;
+  int32_t rightAnalogY = 0;
+  int32_t leftAnalogX = 0;
+  int32_t leftAnalogY = 0;
+
+  // Console inputs
+  bool power = false;
+  bool home = false;
 };
 
 class InputParser
@@ -44,23 +45,6 @@ public:
 
   InputParser(const nlohmann::json &config)
   {
-    // Parsing controller 1 type
-    {
-      bool isTypeRecognized = false;
-      const auto controllerType = jaffarCommon::json::getString(config, "Controller 1 Type");
-      if (controllerType == "None")   { _port1ControllerType = controller_t::none; isTypeRecognized = true; }
-      // if (controllerType == "Joypad") { _port1ControllerType = controller_t::joypad;  isTypeRecognized = true; }
-      if (isTypeRecognized == false) JAFFAR_THROW_LOGIC("Controller 1 type not recognized: '%s'\n", controllerType.c_str()); 
-    }
-
-    // Parsing controller 2 type
-    {
-      bool isTypeRecognized = false;
-      const auto controllerType = jaffarCommon::json::getString(config, "Controller 2 Type");
-      if (controllerType == "None")   { _port2ControllerType = controller_t::none; isTypeRecognized = true; }
-      // if (controllerType == "Joypad") { _port2ControllerType = controller_t::joypad;  isTypeRecognized = true; }
-      if (isTypeRecognized == false) JAFFAR_THROW_LOGIC("Controller 2 type not recognized: '%s'\n", controllerType.c_str()); 
-    }
   }
 
   inline input_t parseInputString(const std::string &inputString) const
@@ -79,24 +63,14 @@ public:
     if (c != '|') reportBadInputString(inputString, c);
 
     // Parsing console inputs
-    // parseConsoleInput(input.reset, ss, inputString);
+    parseConsoleInput(input, ss, inputString);
 
     // Input separator
     c = ss.get();
     if (c != '|') reportBadInputString(inputString, c);
     
     // Parsing controller 1 inputs
-    // if (_port1ControllerType == controller_t::joypad) parseGamepadInput(input.port1, ss, inputString);
-
-    // Input separator
-    if (_port2ControllerType != controller_t::none)
-    {
-      c = ss.get();
-      if (c != '|') reportBadInputString(inputString, c);
-    }
-
-    // Parsing controller 2 inputs
-    // if (_port2ControllerType == controller_t::joypad) parseGamepadInput(input.port2, ss, inputString);
+    parseGamepadInput(input, ss, inputString);
 
     // End separator
     c = ss.get();
@@ -110,109 +84,148 @@ public:
     return input;
   };
 
-  controller_t getController1Type() const { return _port1ControllerType; }
-  controller_t getController2Type() const { return _port2ControllerType; }
-
   private:
 
-  static void parseConsoleInput(bool& reset, std::istringstream& ss, const std::string& inputString)
+  static void parseConsoleInput(input_t& input, std::istringstream& ss, const std::string& inputString)
   {
     // Currently read character
-    // char c;
+    char c;
 
-    // c = ss.get();
-    // if (c != '.' && c != 'r') reportBadInputString(inputString, c);
-    // if (c == 'r') reset = true;
-    // if (c == '.') reset = false;
+    c = ss.get();
+    if (c != '.' && c != 'h') reportBadInputString(inputString, c);
+    if (c == 'h') input.home = true;
+    if (c == '.') input.home = false;
+
+    c = ss.get();
+    if (c != '.' && c != 'P') reportBadInputString(inputString, c);
+    if (c == 'P') input.power = true;
+    if (c == '.') input.power = false;
   }
 
-  static void parseGamepadInput(uint16_t& code, std::istringstream& ss, const std::string& inputString)
+  static void parseGamepadInput(input_t& input, std::istringstream& ss, const std::string& inputString)
   {
-    // // Currently read character
-    // char c;
+    // Currently read character
+    char c;
 
-    // // Cleaning code
-    // code = 0;
+    // Up
+    c = ss.get();
+    if (c != '.' && c != 'U') reportBadInputString(inputString, c);
+    if (c == 'U') input.up = true;
 
-    // // Up
-    // c = ss.get();
-    // if (c != '.' && c != 'U') reportBadInputString(inputString, c);
-    // if (c == 'U') code |= RETRO_DEVICE_ID_JOYPAD_UP;
+    // Down
+    c = ss.get();
+    if (c != '.' && c != 'D') reportBadInputString(inputString, c);
+    if (c == 'D') input.down = true;
 
-    // // Down
-    // c = ss.get();
-    // if (c != '.' && c != 'D') reportBadInputString(inputString, c);
-    // if (c == 'D') code |= RETRO_DEVICE_ID_JOYPAD_DOWN;
+    // Left
+    c = ss.get();
+    if (c != '.' && c != 'L') reportBadInputString(inputString, c);
+    if (c == 'L') input.left = true;
 
-    // // Left
-    // c = ss.get();
-    // if (c != '.' && c != 'L') reportBadInputString(inputString, c);
-    // if (c == 'L') code |= RETRO_DEVICE_ID_JOYPAD_LEFT;
+    // Right
+    c = ss.get();
+    if (c != '.' && c != 'R') reportBadInputString(inputString, c);
+    if (c == 'R') input.right = true;
 
-    // // Right
-    // c = ss.get();
-    // if (c != '.' && c != 'R') reportBadInputString(inputString, c);
-    // if (c == 'R') code |= RETRO_DEVICE_ID_JOYPAD_RIGHT;
+    // Start
+    c = ss.get();
+    if (c != '.' && c != 'S') reportBadInputString(inputString, c);
+    if (c == 'S') input.start = true;
 
-    // // Start
-    // c = ss.get();
-    // if (c != '.' && c != 'S') reportBadInputString(inputString, c);
-    // if (c == 'S') code |= RETRO_DEVICE_ID_JOYPAD_START;
+    // Select
+    c = ss.get();
+    if (c != '.' && c != 's') reportBadInputString(inputString, c);
+    if (c == 's') input.select = true;
 
-    // // Select
-    // c = ss.get();
-    // if (c != '.' && c != 's') reportBadInputString(inputString, c);
-    // if (c == 's') code |= RETRO_DEVICE_ID_JOYPAD_SELECT;
+    // Button Square
+    c = ss.get();
+    if (c != '.' && c != 'Q') reportBadInputString(inputString, c );
+    if (c == 'Q') input.square = true;
 
-    // // Button B
-    // c = ss.get();
-    // if (c != '.' && c != 'B') reportBadInputString(inputString, c );
-    // if (c == 'B') code |= RETRO_DEVICE_ID_JOYPAD_B;
+    // Button Triangle
+    c = ss.get();
+    if (c != '.' && c != 'T') reportBadInputString(inputString, c);
+    if (c == 'T') input.triangle = true;
 
-    // // Button Y
-    // c = ss.get();
-    // if (c != '.' && c != 'Y') reportBadInputString(inputString, c);
-    // if (c == 'Y') code |= RETRO_DEVICE_ID_JOYPAD_Y;
-
-    // // Button A
-    // c = ss.get();
-    // if (c != '.' && c != 'A') reportBadInputString(inputString, c);
-    // if (c == 'A') code |= RETRO_DEVICE_ID_JOYPAD_A;
+    // Button Circle
+    c = ss.get();
+    if (c != '.' && c != 'C') reportBadInputString(inputString, c);
+    if (c == 'C') input.circle = true;
         
-    // // Button X
-    // c = ss.get();
-    // if (c != '.' && c != 'X') reportBadInputString(inputString, c);
-    // if (c == 'X') code |= RETRO_DEVICE_ID_JOYPAD_X;
+    // Button Cross
+    c = ss.get();
+    if (c != '.' && c != 'X') reportBadInputString(inputString, c);
+    if (c == 'X') input.cross = true;
     
-    // // Button L
-    // c = ss.get();
-    // if (c != '.' && c != 'l') reportBadInputString(inputString, c);
-    // if (c == 'l') code |= RETRO_DEVICE_ID_JOYPAD_L;
+    // Button L Trigger
+    c = ss.get();
+    if (c != '.' && c != 'l') reportBadInputString(inputString, c);
+    if (c == 'l') input.ltrigger = true;
 
-    // // Button R
-    // c = ss.get();
-    // if (c != '.' && c != 'r') reportBadInputString(inputString, c);
-    // if (c == 'r') code |= RETRO_DEVICE_ID_JOYPAD_R;
+    // Button R Trigger
+    c = ss.get();
+    if (c != '.' && c != 'r') reportBadInputString(inputString, c);
+    if (c == 'r') input.rtrigger = true;
 
-    // // Button L2
-    // c = ss.get();
-    // if (c != '.' && c != 'l') reportBadInputString(inputString, c);
-    // if (c == 'l') code |= RETRO_DEVICE_ID_JOYPAD_L2;
+    // Parsing Separator
+    c = ss.get();
+    if (c != '|') reportBadInputString(inputString, c);
 
-    // // Button R2
-    // c = ss.get();
-    // if (c != '.' && c != 'r') reportBadInputString(inputString, c);
-    // if (c == 'r') code |= RETRO_DEVICE_ID_JOYPAD_R2;
+    // Parsing Right Analog X
+    char rightAnalogXString[7];
+    rightAnalogXString[0] = ss.get();
+    rightAnalogXString[1] = ss.get();
+    rightAnalogXString[2] = ss.get();
+    rightAnalogXString[3] = ss.get();
+    rightAnalogXString[4] = ss.get();
+    rightAnalogXString[5] = ss.get();
+    rightAnalogXString[6] = '\0';
+    input.rightAnalogX = atoi(rightAnalogXString);
 
-    // // Button L3
-    // c = ss.get();
-    // if (c != '.' && c != 'l') reportBadInputString(inputString, c);
-    // if (c == 'l') code |= RETRO_DEVICE_ID_JOYPAD_L3;
+    // Parsing comma
+    c = ss.get();
+    if (c != ',') reportBadInputString(inputString, c);
 
-    // // Button R3
-    // c = ss.get();
-    // if (c != '.' && c != 'r') reportBadInputString(inputString, c);
-    // if (c == 'r') code |= RETRO_DEVICE_ID_JOYPAD_R3;
+    // Parsing Right Analog Y
+    char rightAnalogYString[7];
+    rightAnalogYString[0] = ss.get();
+    rightAnalogYString[1] = ss.get();
+    rightAnalogYString[2] = ss.get();
+    rightAnalogYString[3] = ss.get();
+    rightAnalogYString[4] = ss.get();
+    rightAnalogYString[5] = ss.get();
+    rightAnalogYString[6] = '\0';
+    input.rightAnalogY = atoi(rightAnalogYString);
+
+    // Parsing comma
+    c = ss.get();
+    if (c != ',') reportBadInputString(inputString, c);
+
+    // Parsing Left Analog X
+    char leftAnalogXString[7];
+    leftAnalogXString[0] = ss.get();
+    leftAnalogXString[1] = ss.get();
+    leftAnalogXString[2] = ss.get();
+    leftAnalogXString[3] = ss.get();
+    leftAnalogXString[4] = ss.get();
+    leftAnalogXString[5] = ss.get();
+    leftAnalogXString[6] = '\0';
+    input.leftAnalogX = atoi(leftAnalogXString);
+
+    // Parsing comma
+    c = ss.get();
+    if (c != ',') reportBadInputString(inputString, c);
+
+    // Parsing Left Analog Y
+    char leftAnalogYString[7];
+    leftAnalogYString[0] = ss.get();
+    leftAnalogYString[1] = ss.get();
+    leftAnalogYString[2] = ss.get();
+    leftAnalogYString[3] = ss.get();
+    leftAnalogYString[4] = ss.get();
+    leftAnalogYString[5] = ss.get();
+    leftAnalogYString[6] = '\0';
+    input.leftAnalogY = atoi(leftAnalogYString);
   }
 
   static inline void reportBadInputString(const std::string &inputString, const char c)
@@ -220,9 +233,6 @@ public:
     JAFFAR_THROW_LOGIC("Could not decode input string: '%s' - Read: '%c'\n", inputString.c_str(), c);
   }
 
-  input_t _input;
-  controller_t _port1ControllerType;
-  controller_t _port2ControllerType;
 }; // class InputParser
 
 } // namespace jaffar
