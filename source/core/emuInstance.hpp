@@ -19,6 +19,7 @@ __JAFFAR_COMMON_DETHREADER_STATE
 cothread_t _emuCoroutine;
 cothread_t _driverCoroutine;
 bool _advanceState = true;
+std::string _romFilePath;
 
 struct MemoryAreas 
 {
@@ -66,7 +67,6 @@ class EmuInstance
   EmuInstance(const nlohmann::json &config)
   {
     _romFilePath = jaffarCommon::json::getString(config, "Rom File Path");
-    _biosFilePath = jaffarCommon::json::getString(config, "Bios File Path");
     _inputParser = std::make_unique<jaffar::InputParser>(config);
   }
 
@@ -103,6 +103,12 @@ class EmuInstance
     auto initTask = []()
     {
       retro_init();
+
+      struct retro_game_info game;
+      game.path = _romFilePath.c_str();
+      auto loadResult = retro_load_game(&game);
+      if (loadResult == false) JAFFAR_THROW_RUNTIME("Could not load game: '%s'\n", _romFilePath.c_str());
+
       co_switch(_driverCoroutine);  
     };
 
@@ -153,33 +159,9 @@ class EmuInstance
     // Initializing emu core
     co_switch(_emuCoroutine);
 
-    // // Setting state size
-    // _stateSize = retro_serialize_size();
-
-    // // Setting device type
-    // lr_input_device_set(0, RETRO_DEVICE_NONE);
-    // lr_input_device_set(1, RETRO_DEVICE_NONE);
-
-    // if (_inputParser->getController1Type() == InputParser::controller_t::joypad) lr_input_device_set(0, RETRO_DEVICE_JOYPAD);
-    // if (_inputParser->getController2Type() == InputParser::controller_t::joypad) lr_input_device_set(1, RETRO_DEVICE_JOYPAD);
-
-    // // Reading from Rom file
-    // std::string romFileData;
-    // bool        status = jaffarCommon::file::loadStringFromFile(romFileData, _romFilePath.c_str());
-    // if (status == false) JAFFAR_THROW_LOGIC("Could not find/read from Rom file: %s\n", _romFilePath.c_str());
-
-    struct retro_game_info game;
-    game.path = _romFilePath.c_str();
-    // game.data = romFileData.data();
-    // game.size = romFileData.size();
-    auto loadResult = retro_load_game(&game);
-    if (loadResult == false) JAFFAR_THROW_RUNTIME("Could not load game: '%s'\n", _romFilePath.c_str());
-
     _videoBufferSize = VIDEO_HORIZONTAL_PIXELS * VIDEO_VERTICAL_PIXELS * sizeof(uint32_t);
     _videoBuffer = (uint32_t*) malloc (_videoBufferSize);
     _audioBuffer = (uint16_t*) malloc (sizeof(uint16_t) * _AUDIO_MAX_SAMPLE_COUNT);
-
-    // // // printf("Game Title: %s\n", _emu->romTitle().c_str());
 
     // //// Getting memory areas
     // /** 2 = wram, 3 = vram*/
@@ -345,8 +327,6 @@ class EmuInstance
     var->value = nullptr;
     printf("Variable Name: %s / Value: %s\n", var->key, var->value);
     std::string key(var->key);
-    // if (key == "opera_bios") var->value = _biosFilePath.c_str();
-
   }
 
   static __INLINE__ int16_t RETRO_CALLCONV retro_input_state_callback(unsigned port, unsigned device, unsigned index, unsigned id)
@@ -407,8 +387,6 @@ class EmuInstance
 
   // Dummy storage for state load/save
   uint8_t* _dummyStateData;
-  std::string _romFilePath;
-  std::string _biosFilePath;
 
   // Input parser instance
   std::unique_ptr<jaffar::InputParser> _inputParser;
