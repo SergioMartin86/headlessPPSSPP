@@ -184,6 +184,7 @@ class EmuInstance
     SDL_Rect destRect = { 0, 0, VIDEO_HORIZONTAL_PIXELS, VIDEO_VERTICAL_PIXELS };
 
     if (SDL_LockTexture(_texture, nullptr, &pixels, &pitch) < 0) return;
+
     memcpy(pixels, _videoBuffer, sizeof(uint32_t) * VIDEO_VERTICAL_PIXELS * VIDEO_HORIZONTAL_PIXELS);
     SDL_UnlockTexture(_texture);
     SDL_RenderClear(_renderer);
@@ -203,21 +204,22 @@ class EmuInstance
 
   inline size_t getStateSize() const 
   {
-    return _stateSize;
+    // return retro_serialize_size();
+    return 0;
   }
 
   inline jaffar::InputParser *getInputParser() const { return _inputParser.get(); }
   
   void serializeState(jaffarCommon::serializer::Base& s) const
   {
-    retro_serialize(s.getOutputDataBuffer(), _stateSize);
-    s.push(nullptr, _stateSize);
+    // retro_serialize(s.getOutputDataBuffer(), _stateSize);
+    // s.push(nullptr, _stateSize);
   }
 
   void deserializeState(jaffarCommon::deserializer::Base& d) 
   {
-    retro_unserialize(d.getInputDataBuffer(), _stateSize);
-    d.pop(nullptr, _stateSize);
+    // retro_unserialize(d.getInputDataBuffer(), _stateSize);
+    // d.pop(nullptr, _stateSize);
   }
 
   size_t getVideoBufferSize() const { return _videoBufferSize; }
@@ -239,8 +241,9 @@ class EmuInstance
      for (size_t j = 0; i < width; i++)
      checksum += ((uint32_t*)data)[i*pitch + j];
     printf("Video Checksum: 0x%lX\n", checksum);
-    // for (size_t i = 0; i < height; i++)
-    //   memcpy(&_instance->_videoBuffer[i * width], &((uint8_t*)data)[i*pitch], sizeof(uint32_t) * width);
+    
+    for (size_t i = 0; i < height; i++)
+      memcpy(&_instance->_videoBuffer[i * width], &((uint8_t*)data)[i*pitch], sizeof(uint32_t) * width);
   }
 
   static __INLINE__ size_t RETRO_CALLCONV retro_audio_sample_batch_callback(const int16_t *data, size_t frames)
@@ -286,8 +289,8 @@ class EmuInstance
 
   __INLINE__ void configHandler(struct retro_variable *var)
   {
+    var->value = nullptr;
     printf("Variable Name: %s / Value: %s\n", var->key, var->value);
-
     std::string key(var->key);
     // if (key == "opera_bios") var->value = _biosFilePath.c_str();
 
