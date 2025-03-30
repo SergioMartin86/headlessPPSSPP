@@ -4,6 +4,7 @@
 #include <jaffarCommon/exceptions.hpp>
 #include <jaffarCommon/file.hpp>
 #include <jaffarCommon/json.hpp>
+#include <jaffarCommon/dethreader.hpp>
 #include <jaffarCommon/serializers/base.hpp>
 #include <jaffarCommon/deserializers/base.hpp>
 #include <jaffarCommon/serializers/contiguous.hpp>
@@ -11,6 +12,13 @@
 #include "inputParser.hpp"
 #include <SDL.h>
 #include <libretro.h>
+
+__JAFFAR_COMMON_DETHREADER_STATE
+
+// Coroutines: they allow us to jump in and out the emu core
+cothread_t _emuCoroutine;
+cothread_t _driverCoroutine;
+bool _advanceState = true;
 
 struct MemoryAreas 
 {
@@ -26,7 +34,6 @@ struct MemorySizes
 
 #define VIDEO_HORIZONTAL_PIXELS 480
 #define	VIDEO_VERTICAL_PIXELS 270
-
 #define _AUDIO_MAX_SAMPLE_COUNT 4096
 
 extern "C"
@@ -69,12 +76,9 @@ class EmuInstance
   {
     _currentInput = input;
 
-    // if (input.reset) { retro_reset();  return; }
-
     // Running a single frame
-    retro_run();
-
-    // printf("%2X%2X%2X%2X\n", _memoryAreas.wram[0], _memoryAreas.wram[1], _memoryAreas.wram[2], _memoryAreas.wram[3]);
+    _advanceState = true;
+    co_switch(_emuCoroutine);
   }
 
   inline jaffarCommon::hash::hash_t getStateHash() const
@@ -90,6 +94,47 @@ class EmuInstance
     return result;
   }
 
+  static void emuCore()
+  {
+    // Creating dethreader manager
+    jaffarCommon::dethreader::Runtime r;
+
+    // Creating init task
+    auto initTask = []()
+    {
+      retro_init();
+      co_switch(_driverCoroutine);  
+    };
+
+    // Creating state advance task
+    auto advanceTask = []()
+    {
+      while(true)
+      {
+        // If it's time to do it, run state
+        if (_advanceState == true)
+        {
+          retro_run();
+          _advanceState = false;
+
+          // Come back to driver scope
+          co_switch(_driverCoroutine);
+        } 
+
+        // Yield execution
+        jaffarCommon::dethreader::yield();
+      }
+    };
+
+    // Addinng tasks
+    r.createThread(initTask);
+    r.createThread(advanceTask);
+ 
+    // Running dethreader runtime
+    r.initialize();
+    r.run();
+  }
+
   void initialize()
   {
     _instance = this;
@@ -98,7 +143,15 @@ class EmuInstance
     retro_set_audio_sample_batch(retro_audio_sample_batch_callback);
     retro_set_video_refresh(retro_video_refresh_callback);
     retro_set_input_state(retro_input_state_callback);
-    retro_init();
+
+
+    printf("Starting Emu Core Coroutine...\n");
+    _driverCoroutine = co_active();
+    constexpr size_t stackSize = 4 * 1024 * 1024;
+    _emuCoroutine = co_create(stackSize, emuCore);
+
+    // Initializing emu core
+    co_switch(_emuCoroutine);
 
     // // Setting state size
     // _stateSize = retro_serialize_size();
