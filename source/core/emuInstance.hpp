@@ -15,10 +15,14 @@
 
 __JAFFAR_COMMON_DETHREADER_STATE
 
+// Memory file directory
+jaffarCommon::file::MemoryFileDirectory _memFileDirectory;
+
 // Coroutines: they allow us to jump in and out the emu core
 cothread_t _emuCoroutine;
 cothread_t _driverCoroutine;
 bool _advanceState = true;
+std::string _cdImageFilePath;
 std::string _romFilePath;
 
 struct MemoryAreas 
@@ -78,6 +82,7 @@ class EmuInstance
 
     // Running a single frame
     _advanceState = true;
+    _driverCoroutine = co_active();
     co_switch(_emuCoroutine);
   }
 
@@ -105,7 +110,7 @@ class EmuInstance
       retro_init();
 
       struct retro_game_info game;
-      game.path = _romFilePath.c_str();
+      game.path = _cdImageFilePath.c_str();
       auto loadResult = retro_load_game(&game);
       if (loadResult == false) JAFFAR_THROW_RUNTIME("Could not load game: '%s'\n", _romFilePath.c_str());
 
@@ -141,7 +146,17 @@ class EmuInstance
     r.run();
   }
 
-  void initialize()
+  /// CD Management Logic Start
+  #define CDIMAGE_SECTOR_SIZE 2048
+
+  std::string _gameData;
+  uint32_t _currentSector = 0;
+  uint32_t cd_get_size(void) {  return _gameData.size() / CDIMAGE_SECTOR_SIZE; }
+  void cd_set_sector(const uint32_t sector_) { _currentSector = sector_; }
+  void cd_read_sector(void *buf_) {  memcpy(buf_, (uint8_t*)&_gameData.data()[_currentSector * CDIMAGE_SECTOR_SIZE], CDIMAGE_SECTOR_SIZE); }
+  /// CD Management Logic End
+
+  bool initialize()
   {
     _instance = this;
     retro_set_environment(retro_environment_callback);
@@ -150,6 +165,36 @@ class EmuInstance
     retro_set_video_refresh(retro_video_refresh_callback);
     retro_set_input_state(retro_input_state_callback);
 
+    // Reading rom file
+    auto status = jaffarCommon::file::loadStringFromFile(_gameData, _romFilePath);
+    if (status == false) { fprintf(stderr, "Could not open rom file: %s\n", _romFilePath.c_str()); return false; }
+
+    // Loading CD into memfile
+    const auto cdSectorCount = cd_get_size();
+    printf("Loading CD %u with %u sectors...\n", 0, cdSectorCount);
+
+    // Uploading CD as a mem file
+    _cdImageFilePath = "CDROM0.bin";
+    auto f = _memFileDirectory.fopen(_cdImageFilePath, "w");
+    if (f == NULL) { fprintf(stderr, "Could not open mem file for write: %s\n", _cdImageFilePath.c_str()); return false; }
+
+    // Writing contents into mem file, one by one
+    for (size_t i = 0; i < cdSectorCount; i++)
+    {
+      uint8_t sector[CDIMAGE_SECTOR_SIZE];
+      cd_set_sector(i);
+      cd_read_sector(sector);
+      auto writtenBlocks = jaffarCommon::file::MemoryFile::fwrite(sector, CDIMAGE_SECTOR_SIZE, 1, f);
+      if (writtenBlocks != 1) 
+      { 
+        fprintf(stderr, "Could not write data into mem file: %s\n", _cdImageFilePath.c_str());
+        _memFileDirectory.fclose(f);
+        return false; 
+      }
+    }
+
+    // Closing file
+    _memFileDirectory.fclose(f);
 
     printf("Starting Emu Core Coroutine...\n");
     _driverCoroutine = co_active();
@@ -163,20 +208,7 @@ class EmuInstance
     _videoBuffer = (uint32_t*) malloc (_videoBufferSize);
     _audioBuffer = (uint16_t*) malloc (sizeof(uint16_t) * _AUDIO_MAX_SAMPLE_COUNT);
 
-    // //// Getting memory areas
-    // /** 2 = wram, 3 = vram*/
-
-    // // WRAM
-    // {
-    //   _memoryAreas.wram = (uint8_t*)retro_get_memory_data(RETRO_MEMORY_SYSTEM_RAM);
-    //   _memorySizes.wram = retro_get_memory_size(RETRO_MEMORY_SYSTEM_RAM);
-    // }
-
-    // // VRAM
-    // {
-    //   _memoryAreas.vram = (uint8_t*)retro_get_memory_data(RETRO_MEMORY_VIDEO_RAM);
-    //   _memorySizes.vram = retro_get_memory_size(RETRO_MEMORY_VIDEO_RAM);
-    // }
+    return true;
   }
 
   void finalize()
