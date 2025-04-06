@@ -4,7 +4,6 @@
 #include <jaffarCommon/exceptions.hpp>
 #include <jaffarCommon/file.hpp>
 #include <jaffarCommon/json.hpp>
-#include <jaffarCommon/dethreader.hpp>
 #include <jaffarCommon/serializers/base.hpp>
 #include <jaffarCommon/deserializers/base.hpp>
 #include <jaffarCommon/serializers/contiguous.hpp>
@@ -13,14 +12,17 @@
 #include <SDL.h>
 #include <libretro.h>
 
+// Coroutines: they allow us to jump in and out the emu core
+#ifdef _USE_COROUTINES
+#include <jaffarCommon/dethreader.hpp>
 __JAFFAR_COMMON_DETHREADER_STATE
+cothread_t _emuCoroutine;
+cothread_t _driverCoroutine;
+#endif
 
 // Memory file directory
 jaffarCommon::file::MemoryFileDirectory _memFileDirectory;
 
-// Coroutines: they allow us to jump in and out the emu core
-cothread_t _emuCoroutine;
-cothread_t _driverCoroutine;
 bool _advanceState = true;
 std::string _cdImageFilePath;
 std::string _romFilePath;
@@ -58,6 +60,39 @@ extern "C"
     RETRO_API bool retro_unserialize(const void *data, size_t size);
 }
 
+/// CD Management Logic Start
+#define CDIMAGE_SECTOR_SIZE 2048
+
+std::string _gameData;
+uint32_t _currentSector = 0;
+uint32_t cd_get_size(void) {  return _gameData.size() / CDIMAGE_SECTOR_SIZE; }
+void cd_set_sector(const uint32_t sector_) { _currentSector = sector_; }
+void cd_read_sector(void *buf_) {  memcpy(buf_, (uint8_t*)&_gameData.data()[_currentSector * CDIMAGE_SECTOR_SIZE], CDIMAGE_SECTOR_SIZE); }
+size_t readSegmentFromCD(void *buf_, const uint64_t address, const size_t size)
+{
+  uint64_t initialSector = address / CDIMAGE_SECTOR_SIZE;
+  uint64_t sectorCount = size / CDIMAGE_SECTOR_SIZE;
+  uint64_t lastSectorBytes = size % CDIMAGE_SECTOR_SIZE;
+
+  uint8_t tmpBuf[CDIMAGE_SECTOR_SIZE];
+  for (uint64_t i = 0; i < sectorCount; i++)
+  {
+    cd_set_sector(initialSector + i);
+    cd_read_sector(tmpBuf);
+    memcpy(&((uint8_t*)buf_)[CDIMAGE_SECTOR_SIZE * i], tmpBuf, CDIMAGE_SECTOR_SIZE);
+  }
+
+  if (lastSectorBytes > 0)
+  {
+    cd_set_sector(initialSector + sectorCount);
+    cd_read_sector(tmpBuf);
+    memcpy(&((uint8_t*)buf_)[CDIMAGE_SECTOR_SIZE * sectorCount], tmpBuf, lastSectorBytes);
+  }
+
+  return size;
+}
+/// CD Management Logic End
+
 namespace jaffar
 {
 
@@ -80,10 +115,15 @@ class EmuInstance
   {
     _currentInput = input;
 
-    // Running a single frame
-    _advanceState = true;
-    _driverCoroutine = co_active();
-    co_switch(_emuCoroutine);
+    #ifdef _USE_COROUTINES
+      // Running a single frame (coroutine)
+      _advanceState = true;
+      _driverCoroutine = co_active();
+      co_switch(_emuCoroutine);
+    #else
+     // Running a single frame (normal)
+     retro_run();
+    #endif
   }
 
   inline jaffarCommon::hash::hash_t getStateHash() const
@@ -99,6 +139,7 @@ class EmuInstance
     return result;
   }
 
+  #ifdef _USE_COROUTINES
   static void emuCore()
   {
     // Creating dethreader manager
@@ -145,16 +186,7 @@ class EmuInstance
     r.initialize();
     r.run();
   }
-
-  /// CD Management Logic Start
-  #define CDIMAGE_SECTOR_SIZE 2048
-
-  std::string _gameData;
-  uint32_t _currentSector = 0;
-  uint32_t cd_get_size(void) {  return _gameData.size() / CDIMAGE_SECTOR_SIZE; }
-  void cd_set_sector(const uint32_t sector_) { _currentSector = sector_; }
-  void cd_read_sector(void *buf_) {  memcpy(buf_, (uint8_t*)&_gameData.data()[_currentSector * CDIMAGE_SECTOR_SIZE], CDIMAGE_SECTOR_SIZE); }
-  /// CD Management Logic End
+  #endif
 
   bool initialize()
   {
@@ -196,13 +228,25 @@ class EmuInstance
     // Closing file
     _memFileDirectory.fclose(f);
 
-    printf("Starting Emu Core Coroutine...\n");
-    _driverCoroutine = co_active();
-    constexpr size_t stackSize = 4 * 1024 * 1024;
-    _emuCoroutine = co_create(stackSize, emuCore);
 
-    // Initializing emu core
-    co_switch(_emuCoroutine);
+
+    // Coroutine way to initialize
+    #ifdef _USE_COROUTINES
+      printf("Starting Emu Core Coroutine...\n");
+      _driverCoroutine = co_active();
+      constexpr size_t stackSize = 4 * 1024 * 1024;
+      _emuCoroutine = co_create(stackSize, emuCore);
+      Initializing emu core
+      co_switch(_emuCoroutine);
+    #else
+    // Normal way to initialize
+      retro_init();
+      struct retro_game_info game;
+      game.path = _romFilePath.c_str();
+      auto loadResult = retro_load_game(&game);
+      if (loadResult == false) JAFFAR_THROW_RUNTIME("Could not load game: '%s'\n", _romFilePath.c_str());
+      printf("Initialized game\n");
+    #endif
 
     _videoBufferSize = VIDEO_HORIZONTAL_PIXELS * VIDEO_VERTICAL_PIXELS * sizeof(uint32_t);
     _videoBuffer = (uint32_t*) malloc (_videoBufferSize);
@@ -303,14 +347,14 @@ class EmuInstance
   static __INLINE__ void RETRO_CALLCONV retro_video_refresh_callback(const void *data, unsigned width, unsigned height, size_t pitch)
   {
     printf("Video %p, w: %u, h: %u, p: %lu\n", data, width, height, pitch);
-    size_t checksum = 0;
-    for (size_t i = 0; i < height; i++)
-     for (size_t j = 0; i < width; i++)
-     checksum += ((uint32_t*)data)[i*pitch + j];
-    printf("Video Checksum: 0x%lX\n", checksum);
+    // size_t checksum = 0;
+    // for (size_t i = 0; i < height; i++)
+    //  for (size_t j = 0; i < width; i++)
+    //  checksum += ((uint32_t*)data)[i*pitch + j];
+    // printf("Video Checksum: 0x%lX\n", checksum);
     
-    for (size_t i = 0; i < height; i++)
-      memcpy(&_instance->_videoBuffer[i * width], &((uint8_t*)data)[i*pitch], sizeof(uint32_t) * width);
+    // for (size_t i = 0; i < height; i++)
+    //   memcpy(&_instance->_videoBuffer[i * width], &((uint8_t*)data)[i*pitch], sizeof(uint32_t) * width);
   }
 
   static __INLINE__ size_t RETRO_CALLCONV retro_audio_sample_batch_callback(const int16_t *data, size_t frames)
@@ -348,6 +392,8 @@ class EmuInstance
     if (cmd == RETRO_ENVIRONMENT_GET_LANGUAGE) { return false; }
     if (cmd == RETRO_ENVIRONMENT_SET_CORE_OPTIONS_DISPLAY) { return false; }
     if (cmd == RETRO_ENVIRONMENT_GET_PREFERRED_HW_RENDER) { return false; }
+    if (cmd == RETRO_ENVIRONMENT_SET_HW_RENDER) { return false; }
+    if (cmd == RETRO_ENVIRONMENT_SHUTDOWN) { return false; }
     
     JAFFAR_THROW_LOGIC("Unrecognized environment callback command: %u\n", cmd);
 

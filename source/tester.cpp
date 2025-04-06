@@ -183,8 +183,10 @@ int main(int argc, char *argv[])
 
   // Actually running the sequence
   auto t0 = std::chrono::high_resolution_clock::now();
+  int i = 0; 
   for (const auto &input : decodedSequence)
   {
+    printf("Running Frame %d\n",i++);
     if (doPreAdvance == true) e.advanceState(input);
     
     if (doDeserialize == true)
