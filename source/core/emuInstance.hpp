@@ -245,7 +245,6 @@ class EmuInstance
       game.path = _romFilePath.c_str();
       auto loadResult = retro_load_game(&game);
       if (loadResult == false) JAFFAR_THROW_RUNTIME("Could not load game: '%s'\n", _romFilePath.c_str());
-      printf("Initialized game\n");
     #endif
 
     _videoBufferSize = VIDEO_HORIZONTAL_PIXELS * VIDEO_VERTICAL_PIXELS * sizeof(uint32_t);
@@ -347,14 +346,14 @@ class EmuInstance
   static __INLINE__ void RETRO_CALLCONV retro_video_refresh_callback(const void *data, unsigned width, unsigned height, size_t pitch)
   {
     printf("Video %p, w: %u, h: %u, p: %lu\n", data, width, height, pitch);
-    // size_t checksum = 0;
-    // for (size_t i = 0; i < height; i++)
-    //  for (size_t j = 0; i < width; i++)
-    //  checksum += ((uint32_t*)data)[i*pitch + j];
-    // printf("Video Checksum: 0x%lX\n", checksum);
+    size_t checksum = 0;
+    for (size_t i = 0; i < height; i++)
+     for (size_t j = 0; i < width; i++)
+     checksum += ((uint32_t*)data)[i*pitch + j];
+    printf("Video Checksum: 0x%lX\n", checksum);
     
-    // for (size_t i = 0; i < height; i++)
-    //   memcpy(&_instance->_videoBuffer[i * width], &((uint8_t*)data)[i*pitch], sizeof(uint32_t) * width);
+    for (size_t i = 0; i < height; i++)
+      memcpy(&_instance->_videoBuffer[i * width], &((uint8_t*)data)[i*pitch], sizeof(uint32_t) * width);
   }
 
   static __INLINE__ size_t RETRO_CALLCONV retro_audio_sample_batch_callback(const int16_t *data, size_t frames)
