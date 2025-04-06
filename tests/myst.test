@@ -1,0 +1,9 @@
+{
+    "Rom File Path": "roms/Myst (USA) (PSP) (PSN).iso",
+    "Expected Rom SHA1": "10948918F84CCD69E68D044F7AE11E679AB0A8EF",
+    "Bios File Path": "",
+    "Initial State File": "",
+    "Disable State Blocks": [],
+    "Controller 1 Type": "None",
+    "Controller 2 Type": "None"
+}
