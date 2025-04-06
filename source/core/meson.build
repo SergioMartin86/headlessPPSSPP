@@ -573,6 +573,7 @@ ppssppIncludeDirs = [
 ]
 
 ppssppCompileArgs = [
+	'-DUSE_FFMPEG',
 	'-DNDEBUG',
 	'-DRC_DISABLE_LUA',
 	'-DSTACK_LINE_READER_BUFFER_SIZE=1024',

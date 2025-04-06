@@ -4,6 +4,13 @@ project('headlessPPSSPP','c','cpp',
   subproject_dir : 'extern'
 )
 
+# Grabbing dependencies dependency
+
+jaffarCommonSubproject = subproject('jaffarCommon', default_options : [ 'includeFFmpeg=true', 'includeZlib=true'])
+jaffarCommonDependency = jaffarCommonSubproject.get_variable('jaffarCommonDependency')
+ffmpegLibrary = jaffarCommonSubproject.get_variable('ffmpegLibrary')
+zlibLibrary = jaffarCommonSubproject.get_variable('zlibLibrary')
+
 # Loading dependencies
 subdir('source')
 
@@ -12,11 +19,6 @@ if meson.is_subproject() == false
 
 # Common application flags
 commonCompileArgs = [ '-Wall', '-Wfatal-errors' ]
-
-# Grabbing jaffarCommon dependency
-
-jaffarCommonSubproject = subproject('jaffarCommon')
-jaffarCommonDependency = jaffarCommonSubproject.get_variable('jaffarCommonDependency')
 
 # Building playback tool
 
@@ -28,6 +30,7 @@ if get_option('buildPlayer') == true
     dependencies        : [ ppssppDependency,
                             jaffarCommonDependency
                           ],
+    link_with           : [ ffmpegLibrary, zlibLibrary ],
     include_directories : include_directories(['source']),
     link_args           : [ '-lncurses' ],
   )
@@ -40,6 +43,7 @@ ntester = executable('tester',
   'source/tester.cpp',
   cpp_args            : [ commonCompileArgs ], 
   dependencies        : [ ppssppDependency, jaffarCommonDependency ],
+  link_with           : [ ffmpegLibrary, zlibLibrary ],
 )
 
 # Building tester tool for the original emulator
