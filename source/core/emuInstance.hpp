@@ -12,7 +12,6 @@
 #include <SDL.h>
 #include <libretro.h>
 
-bool _advanceState = true;
 std::string _cdImageFilePath = "__CDROM_PATH.iso";
 std::string _romFilePath;
 
