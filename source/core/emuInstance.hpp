@@ -13,6 +13,7 @@
 #include <libretro.h>
 
 // Coroutines: they allow us to jump in and out the emu core
+// #define _USE_COROUTINES
 #ifdef _USE_COROUTINES
 #include <jaffarCommon/dethreader.hpp>
 __JAFFAR_COMMON_DETHREADER_STATE
@@ -151,7 +152,8 @@ class EmuInstance
       retro_init();
 
       struct retro_game_info game;
-      game.path = _cdImageFilePath.c_str();
+      //game.path = _cdImageFilePath.c_str();
+      game.path = _romFilePath.c_str();
       auto loadResult = retro_load_game(&game);
       if (loadResult == false) JAFFAR_THROW_RUNTIME("Could not load game: '%s'\n", _romFilePath.c_str());
 
@@ -228,15 +230,13 @@ class EmuInstance
     // Closing file
     _memFileDirectory.fclose(f);
 
-
-
     // Coroutine way to initialize
     #ifdef _USE_COROUTINES
       printf("Starting Emu Core Coroutine...\n");
       _driverCoroutine = co_active();
       constexpr size_t stackSize = 4 * 1024 * 1024;
       _emuCoroutine = co_create(stackSize, emuCore);
-      Initializing emu core
+      //Initializing emu core
       co_switch(_emuCoroutine);
     #else
     // Normal way to initialize
@@ -349,7 +349,7 @@ class EmuInstance
     size_t checksum = 0;
     for (size_t i = 0; i < height; i++)
      for (size_t j = 0; i < width; i++)
-     checksum += ((uint32_t*)data)[i*pitch + j];
+     checksum += ((uint32_t*)data)[i*width + j];
     printf("Video Checksum: 0x%lX\n", checksum);
     
     for (size_t i = 0; i < height; i++)
