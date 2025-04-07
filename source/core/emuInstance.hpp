@@ -12,19 +12,8 @@
 #include <SDL.h>
 #include <libretro.h>
 
-// Coroutines: they allow us to jump in and out the emu core
-#ifdef _USE_COROUTINES
-#include <jaffarCommon/dethreader.hpp>
-__JAFFAR_COMMON_DETHREADER_STATE
-cothread_t _emuCoroutine;
-cothread_t _driverCoroutine;
-#endif
-
-// Memory file directory
-jaffarCommon::file::MemoryFileDirectory _memFileDirectory;
-
 bool _advanceState = true;
-std::string _cdImageFilePath;
+std::string _cdImageFilePath = "__CDROM_PATH.iso";
 std::string _romFilePath;
 
 struct MemoryAreas 
@@ -65,7 +54,8 @@ extern "C"
 
 std::string _gameData;
 uint32_t _currentSector = 0;
-uint32_t cd_get_size(void) {  return _gameData.size() / CDIMAGE_SECTOR_SIZE; }
+uint32_t cd_get_size(void) {  return _gameData.size(); }
+uint32_t cd_get_sector_count(void) {  return cd_get_size() / CDIMAGE_SECTOR_SIZE; }
 void cd_set_sector(const uint32_t sector_) { _currentSector = sector_; }
 void cd_read_sector(void *buf_) {  memcpy(buf_, (uint8_t*)&_gameData.data()[_currentSector * CDIMAGE_SECTOR_SIZE], CDIMAGE_SECTOR_SIZE); }
 size_t readSegmentFromCD(void *buf_, const uint64_t address, const size_t size)
@@ -114,16 +104,7 @@ class EmuInstance
   void advanceState(const jaffar::input_t &input)
   {
     _currentInput = input;
-
-    #ifdef _USE_COROUTINES
-      // Running a single frame (coroutine)
-      _advanceState = true;
-      _driverCoroutine = co_active();
-      co_switch(_emuCoroutine);
-    #else
-     // Running a single frame (normal)
      retro_run();
-    #endif
   }
 
   inline jaffarCommon::hash::hash_t getStateHash() const
@@ -139,55 +120,6 @@ class EmuInstance
     return result;
   }
 
-  #ifdef _USE_COROUTINES
-  static void emuCore()
-  {
-    // Creating dethreader manager
-    jaffarCommon::dethreader::Runtime r;
-
-    // Creating init task
-    auto initTask = []()
-    {
-      retro_init();
-
-      struct retro_game_info game;
-      game.path = _cdImageFilePath.c_str();
-      auto loadResult = retro_load_game(&game);
-      if (loadResult == false) JAFFAR_THROW_RUNTIME("Could not load game: '%s'\n", _romFilePath.c_str());
-
-      co_switch(_driverCoroutine);  
-    };
-
-    // Creating state advance task
-    auto advanceTask = []()
-    {
-      while(true)
-      {
-        // If it's time to do it, run state
-        if (_advanceState == true)
-        {
-          retro_run();
-          _advanceState = false;
-
-          // Come back to driver scope
-          co_switch(_driverCoroutine);
-        } 
-
-        // Yield execution
-        jaffarCommon::dethreader::yield();
-      }
-    };
-
-    // Addinng tasks
-    r.createThread(initTask);
-    r.createThread(advanceTask);
- 
-    // Running dethreader runtime
-    r.initialize();
-    r.run();
-  }
-  #endif
-
   bool initialize()
   {
     _instance = this;
@@ -201,51 +133,12 @@ class EmuInstance
     auto status = jaffarCommon::file::loadStringFromFile(_gameData, _romFilePath);
     if (status == false) { fprintf(stderr, "Could not open rom file: %s\n", _romFilePath.c_str()); return false; }
 
-    // Loading CD into memfile
-    const auto cdSectorCount = cd_get_size();
-    printf("Loading CD %u with %u sectors...\n", 0, cdSectorCount);
-
-    // Uploading CD as a mem file
-    _cdImageFilePath = "CDROM0.bin";
-    auto f = _memFileDirectory.fopen(_cdImageFilePath, "w");
-    if (f == NULL) { fprintf(stderr, "Could not open mem file for write: %s\n", _cdImageFilePath.c_str()); return false; }
-
-    // Writing contents into mem file, one by one
-    for (size_t i = 0; i < cdSectorCount; i++)
-    {
-      uint8_t sector[CDIMAGE_SECTOR_SIZE];
-      cd_set_sector(i);
-      cd_read_sector(sector);
-      auto writtenBlocks = jaffarCommon::file::MemoryFile::fwrite(sector, CDIMAGE_SECTOR_SIZE, 1, f);
-      if (writtenBlocks != 1) 
-      { 
-        fprintf(stderr, "Could not write data into mem file: %s\n", _cdImageFilePath.c_str());
-        _memFileDirectory.fclose(f);
-        return false; 
-      }
-    }
-
-    // Closing file
-    _memFileDirectory.fclose(f);
-
-
-
-    // Coroutine way to initialize
-    #ifdef _USE_COROUTINES
-      printf("Starting Emu Core Coroutine...\n");
-      _driverCoroutine = co_active();
-      constexpr size_t stackSize = 4 * 1024 * 1024;
-      _emuCoroutine = co_create(stackSize, emuCore);
-      Initializing emu core
-      co_switch(_emuCoroutine);
-    #else
     // Normal way to initialize
-      retro_init();
-      struct retro_game_info game;
-      game.path = _romFilePath.c_str();
-      auto loadResult = retro_load_game(&game);
-      if (loadResult == false) JAFFAR_THROW_RUNTIME("Could not load game: '%s'\n", _romFilePath.c_str());
-    #endif
+    retro_init();
+    struct retro_game_info game;
+    game.path = _romFilePath.c_str();
+    auto loadResult = retro_load_game(&game);
+    if (loadResult == false) JAFFAR_THROW_RUNTIME("Could not load game: '%s'\n", _romFilePath.c_str());
 
     _videoBufferSize = VIDEO_HORIZONTAL_PIXELS * VIDEO_VERTICAL_PIXELS * sizeof(uint32_t);
     _videoBuffer = (uint32_t*) malloc (_videoBufferSize);
@@ -349,7 +242,7 @@ class EmuInstance
     size_t checksum = 0;
     for (size_t i = 0; i < height; i++)
      for (size_t j = 0; i < width; i++)
-     checksum += ((uint32_t*)data)[i*pitch + j];
+     checksum += ((uint32_t*)data)[i*width + j];
     printf("Video Checksum: 0x%lX\n", checksum);
     
     for (size_t i = 0; i < height; i++)
