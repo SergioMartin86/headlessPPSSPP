@@ -240,7 +240,7 @@ class EmuInstance
     printf("Video %p, w: %u, h: %u, p: %lu\n", data, width, height, pitch);
     size_t checksum = 0;
     for (size_t i = 0; i < height; i++)
-     for (size_t j = 0; i < width; i++)
+     for (size_t j = 0; j < width; j++)
      checksum += ((uint32_t*)data)[i*width + j];
     printf("Video Checksum: 0x%lX\n", checksum);
     
