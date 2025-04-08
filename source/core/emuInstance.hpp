@@ -251,6 +251,10 @@ class EmuInstance
   static __INLINE__ size_t RETRO_CALLCONV retro_audio_sample_batch_callback(const int16_t *data, size_t frames)
   {
     printf("Audio frames: %lu\n", frames);
+    size_t checksum = 0;
+    for (size_t i = 0; i < frames; i++)
+     checksum += ((int16_t*)data)[i];
+    printf("Audio Checksum: 0x%lX\n", checksum);
     // memcpy(_instance->_audioBuffer, data, sizeof(int16_t) * frames);
     // _instance->_audioSamples = frames;
     return frames;
