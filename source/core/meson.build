@@ -495,13 +495,7 @@ ppssppIncludeDirs = [
   'ppsspp/Common',
   'ppsspp/ext/libzip',
   'ppsspp/ext/libpng17',
-  'ppsspp/ext/zstd/lib',
-  'ppsspp/ext/libchdr/include',
-  'ppsspp/ext/miniupnp/miniupnpc/src',
-  'ppsspp/ext/miniupnp/miniupnpc/include',
   'ppsspp/ext/snappy/',
-  'ppsspp/ext/cmake/cpu_features/../../cpu_features/include',
-  'ppsspp/ext/libchdr/deps/lzma-22.01/include/',
   'ppsspp/ffmpeg/linux/x86_64/include/',
   'ppsspp/ext/miniupnp-build/'
 ]
