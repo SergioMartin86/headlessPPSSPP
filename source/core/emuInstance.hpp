@@ -143,6 +143,9 @@ class EmuInstance
     _videoBuffer = (uint32_t*) malloc (_videoBufferSize);
     _audioBuffer = (uint16_t*) malloc (sizeof(uint16_t) * _AUDIO_MAX_SAMPLE_COUNT);
 
+    // Getting state size
+    _stateSize = retro_serialize_size();
+
     return true;
   }
 
@@ -206,22 +209,21 @@ class EmuInstance
 
   inline size_t getStateSize() const 
   {
-    // return retro_serialize_size();
-    return 0;
+    return _stateSize; 
   }
 
   inline jaffar::InputParser *getInputParser() const { return _inputParser.get(); }
   
   void serializeState(jaffarCommon::serializer::Base& s) const
   {
-    // retro_serialize(s.getOutputDataBuffer(), _stateSize);
-    // s.push(nullptr, _stateSize);
+    retro_serialize(s.getOutputDataBuffer(), _stateSize);
+    s.push(nullptr, _stateSize);
   }
 
   void deserializeState(jaffarCommon::deserializer::Base& d) 
   {
-    // retro_unserialize(d.getInputDataBuffer(), _stateSize);
-    // d.pop(nullptr, _stateSize);
+    retro_unserialize(d.getInputDataBuffer(), _stateSize);
+    d.pop(nullptr, _stateSize);
   }
 
   size_t getVideoBufferSize() const { return _videoBufferSize; }
