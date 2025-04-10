@@ -654,7 +654,7 @@ ppssppIncludeDirs = [
   'ppsspp/ext/OpenXR-SDK/include',
   'ppsspp/Common',
   'ppsspp/ext/libzip',
-  'ppsspp/ext/zstd',
+  'ppsspp/ext/zstd/lib',
   'ppsspp/ext/libpng17',
   'ppsspp/ext/snappy/',
   'ppsspp/ffmpeg/linux/x86_64/include/',
