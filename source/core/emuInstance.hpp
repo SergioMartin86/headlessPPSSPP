@@ -248,7 +248,8 @@ class EmuInstance
 
   inline size_t getStateSize() const 
   {
-    return 134217728; // 128MB ought to be enough for anybody.
+    return 0;
+    // return 134217728; // 128MB ought to be enough for anybody.
     // return _stateSize; 
   }
 
@@ -256,14 +257,14 @@ class EmuInstance
   
   void serializeState(jaffarCommon::serializer::Base& s) const
   {
-    retro_serialize(s.getOutputDataBuffer(), _stateSize);
-    s.push(nullptr, _stateSize);
+    // retro_serialize(s.getOutputDataBuffer(), _stateSize);
+    // s.push(nullptr, _stateSize);
   }
 
   void deserializeState(jaffarCommon::deserializer::Base& d) 
   {
-    retro_unserialize(d.getInputDataBuffer(), _stateSize);
-    d.pop(nullptr, _stateSize);
+    // retro_unserialize(d.getInputDataBuffer(), _stateSize);
+    // d.pop(nullptr, _stateSize);
   }
 
   size_t getVideoBufferSize() const { return _videoBufferSize; }

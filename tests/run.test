@@ -3,7 +3,7 @@
     "Expected Rom SHA1": "DBA088C6F99F7F5B6E2DADEB43C42DBDCD871A51",
     "Compatibility File Path": "../source/core/ppsspp/assets/compat.ini",
     "Compatibility VR File Path": "../source/core/ppsspp/assets/compatvr.ini",
-    "Atlas Font Zim File Path": "../source/core/ppsspp/assets/font_atlas.zim",
+    "Atlas Font Zim File Path": "../source/core/ppsspp/assets/ppge_atlas.zim",
     "Atlas Font Metadata File Path": "../source/core/ppsspp/assets/ppge_atlas.meta",
     "Initial State File": "",
     "Disable State Blocks": [],
