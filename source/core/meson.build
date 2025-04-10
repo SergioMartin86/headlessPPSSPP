@@ -322,7 +322,7 @@ ppssppSrc =  [
 	'ppsspp/Core/MIPS/JitCommon/JitCommon.cpp',
 	'ppsspp/Core/MIPS/JitCommon/JitState.cpp',
 	'ppsspp/Core/MIPS/JitCommon/JitState.cpp',
-	'ppsspp/Core/MIPS/_MIPS.cpp',
+	'ppsspp/Core/MIPS/MIPS.cpp',
 	'ppsspp/Core/MIPS/MIPSAnalyst.cpp',
 	'ppsspp/Core/MIPS/MIPSAsm.cpp',
 	'ppsspp/Core/MIPS/MIPSCodeUtils.cpp',
