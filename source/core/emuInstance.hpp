@@ -139,8 +139,6 @@ class EmuInstance
     auto loadResult = retro_load_game(&game);
     if (loadResult == false) JAFFAR_THROW_RUNTIME("Could not load game: '%s'\n", _romFilePath.c_str());
 
-    _videoBufferSize = VIDEO_HORIZONTAL_PIXELS * VIDEO_VERTICAL_PIXELS * sizeof(uint32_t);
-    _videoBuffer = (uint32_t*) malloc (_videoBufferSize);
     _audioBuffer = (uint16_t*) malloc (sizeof(uint16_t) * _AUDIO_MAX_SAMPLE_COUNT);
 
     // Getting state size
@@ -239,6 +237,10 @@ class EmuInstance
 
   static __INLINE__ void RETRO_CALLCONV retro_video_refresh_callback(const void *data, unsigned width, unsigned height, size_t pitch)
   {
+    auto curVideoBufferSize = _instance->_videoBufferSize;
+    _instance->_videoBufferSize = VIDEO_HORIZONTAL_PIXELS * VIDEO_VERTICAL_PIXELS * sizeof(uint32_t);
+    if (curVideoBufferSize != _instance->_videoBufferSize) _instance->_videoBuffer = (uint32_t*) realloc (_instance->_videoBuffer, _instance->_videoBufferSize);
+
     printf("Video %p, w: %u, h: %u, p: %lu\n", data, width, height, pitch);
     size_t checksum = 0;
     for (size_t i = 0; i < height; i++)
@@ -370,7 +372,7 @@ class EmuInstance
   SDL_Window* _renderWindow;
   SDL_Renderer* _renderer;
   SDL_Texture* _texture;
-  uint32_t* _videoBuffer;
+  uint32_t* _videoBuffer = nullptr;
   size_t _videoBufferSize;
   size_t _videoPitch;
 
