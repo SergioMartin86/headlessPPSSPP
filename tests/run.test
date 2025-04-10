@@ -1,7 +1,8 @@
 {
     "Rom File Path": "roms/Beta Bloc (USA) (PSP) (PSN).iso",
     "Expected Rom SHA1": "DBA088C6F99F7F5B6E2DADEB43C42DBDCD871A51",
-    "Bios File Path": "",
+    "Compatibility File Path": "../source/core/ppsspp/assets/compat.ini",
+    "Compatibility VR File Path": "../source/core/ppsspp/assets/compatvr.ini",
     "Initial State File": "",
     "Disable State Blocks": [],
     "Controller 1 Type": "None",

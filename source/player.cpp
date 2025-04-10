@@ -112,7 +112,7 @@ int main(int argc, char *argv[])
   auto e = jaffar::EmuInstance(configJs);
 
   // Initializing emulator instance
-  e.initialize();
+  if (e.initialize() == false) JAFFAR_THROW_LOGIC("Error initializing emulator\n");
 
   // Initializing video output
   if (disableRender == false) e.initializeVideoOutput();

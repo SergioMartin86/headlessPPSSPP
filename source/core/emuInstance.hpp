@@ -14,6 +14,8 @@
 
 std::string _cdImageFilePath = "__CDROM_PATH.iso";
 std::string _romFilePath;
+std::string _compatibilityFilePath;
+std::string _compatibilityVRFilePath;
 
 struct MemoryAreas 
 {
@@ -30,6 +32,9 @@ struct MemorySizes
 #define VIDEO_HORIZONTAL_PIXELS 480
 #define	VIDEO_VERTICAL_PIXELS 270
 #define _AUDIO_MAX_SAMPLE_COUNT 4096
+
+std::string _compatibilityFileData = "";
+std::string _compatibilityVRFileData = "";
 
 extern "C"
 {
@@ -95,6 +100,8 @@ class EmuInstance
   EmuInstance(const nlohmann::json &config)
   {
     _romFilePath = jaffarCommon::json::getString(config, "Rom File Path");
+    _compatibilityFilePath = jaffarCommon::json::getString(config, "Compatibility File Path");
+    _compatibilityVRFilePath = jaffarCommon::json::getString(config, "Compatibility VR File Path");
     _inputParser = std::make_unique<jaffar::InputParser>(config);
   }
 
@@ -128,9 +135,22 @@ class EmuInstance
     retro_set_video_refresh(retro_video_refresh_callback);
     retro_set_input_state(retro_input_state_callback);
 
+    // Reading compatibility files
+    {
+      auto status = jaffarCommon::file::loadStringFromFile(_compatibilityFileData, _compatibilityFilePath);
+      if (status == false) { fprintf(stderr, "Could not open compatibility file: %s\n", _compatibilityFilePath.c_str()); return false; }
+    }
+
+    {
+      auto status = jaffarCommon::file::loadStringFromFile(_compatibilityVRFileData, _compatibilityVRFilePath);
+      if (status == false) { fprintf(stderr, "Could not open compatibility VR file: %s\n", _compatibilityVRFilePath.c_str()); return false; }
+    }
+
     // Reading rom file
-    auto status = jaffarCommon::file::loadStringFromFile(_gameData, _romFilePath);
-    if (status == false) { fprintf(stderr, "Could not open rom file: %s\n", _romFilePath.c_str()); return false; }
+    {
+      auto status = jaffarCommon::file::loadStringFromFile(_gameData, _romFilePath);
+      if (status == false) { fprintf(stderr, "Could not open rom file: %s\n", _romFilePath.c_str()); return false; }
+    }
 
     // Normal way to initialize
     retro_init();

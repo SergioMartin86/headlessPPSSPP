@@ -102,7 +102,7 @@ int main(int argc, char *argv[])
   auto e = jaffar::EmuInstance(configJs);
 
   // Initializing emulator instance
-  e.initialize();
+  if (e.initialize() == false) JAFFAR_THROW_LOGIC("Error initializing emulator\n");
   
   // If an initial state is provided, load it now
   if (initialStateFilePath != "")
