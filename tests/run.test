@@ -3,6 +3,7 @@
     "Expected Rom SHA1": "DBA088C6F99F7F5B6E2DADEB43C42DBDCD871A51",
     "Compatibility File Path": "../source/core/ppsspp/assets/compat.ini",
     "Compatibility VR File Path": "../source/core/ppsspp/assets/compatvr.ini",
+    "Atlas Font Zim Path": "../source/core/ppsspp/assets/font_atlas.zim",
     "Initial State File": "",
     "Disable State Blocks": [],
     "Controller 1 Type": "None",

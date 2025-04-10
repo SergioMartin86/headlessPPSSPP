@@ -16,6 +16,7 @@ std::string _cdImageFilePath = "__CDROM_PATH.iso";
 std::string _romFilePath;
 std::string _compatibilityFilePath;
 std::string _compatibilityVRFilePath;
+std::string _atlasFontZimFilePath;
 
 struct MemoryAreas 
 {
@@ -35,6 +36,7 @@ struct MemorySizes
 
 std::string _compatibilityFileData = "";
 std::string _compatibilityVRFileData = "";
+std::string _atlasFontZimFileData = "";
 
 extern "C"
 {
@@ -102,6 +104,7 @@ class EmuInstance
     _romFilePath = jaffarCommon::json::getString(config, "Rom File Path");
     _compatibilityFilePath = jaffarCommon::json::getString(config, "Compatibility File Path");
     _compatibilityVRFilePath = jaffarCommon::json::getString(config, "Compatibility VR File Path");
+    _atlasFontZimFilePath = jaffarCommon::json::getString(config, "Atlas Font Zim Path");
     _inputParser = std::make_unique<jaffar::InputParser>(config);
   }
 
@@ -144,6 +147,12 @@ class EmuInstance
     {
       auto status = jaffarCommon::file::loadStringFromFile(_compatibilityVRFileData, _compatibilityVRFilePath);
       if (status == false) { fprintf(stderr, "Could not open compatibility VR file: %s\n", _compatibilityVRFilePath.c_str()); return false; }
+    }
+
+    // Loading atlas font zim file
+    {
+      auto status = jaffarCommon::file::loadStringFromFile(_atlasFontZimFileData, _atlasFontZimFilePath);
+      if (status == false) { fprintf(stderr, "Could not open compatibility atlas font file: %s\n", _atlasFontZimFilePath.c_str()); return false; }
     }
 
     // Reading rom file
