@@ -37,6 +37,7 @@ struct MemorySizes
 std::string _compatibilityFileData = "";
 std::string _compatibilityVRFileData = "";
 std::string _atlasFontZimFileData = "";
+bool _readInputs;
 
 extern "C"
 {
@@ -113,7 +114,9 @@ class EmuInstance
   void advanceState(const jaffar::input_t &input)
   {
     _currentInput = input;
+    _readInputs = false;
      retro_run();
+     printf("Read Inputs: %s\n", _readInputs ? "True" : "False");
   }
 
   inline jaffarCommon::hash::hash_t getStateHash() const
