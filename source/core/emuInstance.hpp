@@ -239,7 +239,8 @@ class EmuInstance
 
   inline size_t getStateSize() const 
   {
-    return _stateSize; 
+    return 134217728; // 128MB ought to be enough for anybody.
+    // return _stateSize; 
   }
 
   inline jaffar::InputParser *getInputParser() const { return _inputParser.get(); }
