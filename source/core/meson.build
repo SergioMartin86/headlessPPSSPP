@@ -131,6 +131,7 @@ ppssppSrc =  [
 	'ppsspp/Core/Core.cpp',
 	'ppsspp/Core/CoreTiming.cpp',
 	'ppsspp/Core/CwCheat.cpp',
+	'ppsspp/Core/LuaContext.cpp',
 	'ppsspp/Core/Screenshot.cpp',
 	'ppsspp/Core/Debugger/Breakpoints.cpp',
 	'ppsspp/Core/Debugger/DisassemblyManager.cpp',
