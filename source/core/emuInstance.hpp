@@ -11,6 +11,9 @@
 #include "inputParser.hpp"
 #include <SDL.h>
 #include <libretro.h>
+#include <GPU/GPU.h>
+
+extern GPUCommon *gpu;
 
 std::string _cdImageFilePath = "__CDROM_PATH.iso";
 std::string _romFilePath;
@@ -180,6 +183,9 @@ class EmuInstance
     auto loadResult = retro_load_game(&game);
     if (loadResult == false) JAFFAR_THROW_RUNTIME("Could not load game: '%s'\n", _romFilePath.c_str());
 
+    // Advancing until gpu is initialized -- this is necessary for proper savestates
+    while (!gpu) retro_run();
+
     _audioBuffer = (uint16_t*) malloc (sizeof(uint16_t) * _AUDIO_MAX_SAMPLE_COUNT);
 
     // Getting state size
@@ -336,6 +342,8 @@ class EmuInstance
     if (cmd == RETRO_ENVIRONMENT_GET_PREFERRED_HW_RENDER) { return false; }
     if (cmd == RETRO_ENVIRONMENT_SET_HW_RENDER) { return false; }
     if (cmd == RETRO_ENVIRONMENT_SHUTDOWN) { return false; }
+    if (cmd == RETRO_ENVIRONMENT_SET_SYSTEM_AV_INFO) { return false; }
+    if (cmd == RETRO_ENVIRONMENT_SET_GEOMETRY) { return false; }
     
     JAFFAR_THROW_LOGIC("Unrecognized environment callback command: %u\n", cmd);
 
