@@ -1,7 +1,6 @@
 # PPSSPP Core sources
 
 ppssppSrc =  [
-	'ppsspp/build/git-version.cpp',
 	'ppsspp/Common/ABI.cpp',
 	'ppsspp/Common/Arm64Emitter.cpp',
 	'ppsspp/Common/ArmCPUDetect.cpp',
@@ -123,6 +122,7 @@ ppssppSrc =  [
 	'ppsspp/Common/VR/VRRenderer.cpp',
 	'ppsspp/Common/x64Analyzer.cpp',
 	'ppsspp/Common/x64Emitter.cpp',
+	'ppsspp/Common/File/VFS/ZipFileReader.cpp',
 	'ppsspp/Core/AVIDump.cpp',
 	'ppsspp/Core/Compatibility.cpp',
 	'ppsspp/Core/Config.cpp',
@@ -435,6 +435,7 @@ ppssppSrc =  [
 	'ppsspp/GPU/Common/FramebufferManagerCommon.cpp',
 	'ppsspp/GPU/Common/GPUDebugInterface.cpp',
 	'ppsspp/GPU/Common/GPUStateUtils.cpp',
+	'ppsspp/GPU/Common/IndexGenerator.cpp',
 	'ppsspp/GPU/Common/PostShader.cpp',
 	'ppsspp/GPU/Common/PresentationCommon.cpp',
 	'ppsspp/GPU/Common/ReinterpretFramebuffer.cpp',
