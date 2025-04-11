@@ -1,0 +1,13 @@
+{
+    "Rom File Path": "roms/Shin Megami Tensei - Persona 2 - Innocent Sin (USA) (PSP) (PSN).iso",
+    "Expected Rom SHA1": "585208260C96546DAA67A6B988C3CCB1ADE55474",
+    "Compatibility File Path": "../source/core/ppsspp/assets/compat.ini",
+    "Compatibility VR File Path": "../source/core/ppsspp/assets/compatvr.ini",
+    "Atlas Font Zim File Path": "../source/core/ppsspp/assets/ppge_atlas.zim",
+    "Atlas Font Metadata File Path": "../source/core/ppsspp/assets/ppge_atlas.meta",
+    "Bios File Path": "",
+    "Initial State File": "",
+    "Disable State Blocks": [],
+    "Controller 1 Type": "None",
+    "Controller 2 Type": "None"
+}

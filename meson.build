@@ -6,10 +6,11 @@ project('headlessPPSSPP','c','cpp',
 
 # Grabbing dependencies dependency
 
-jaffarCommonSubproject = subproject('jaffarCommon', default_options : [ 'includeFFmpeg=true', 'includeZlib=true'])
+jaffarCommonSubproject = subproject('jaffarCommon', default_options : [ 'includeFFmpeg=true', 'includeZlib=true', 'includeSDL2_TTF=true'])
 jaffarCommonDependency = jaffarCommonSubproject.get_variable('jaffarCommonDependency')
 ffmpegLibrary = jaffarCommonSubproject.get_variable('ffmpegLibrary')
 zlibLibrary = jaffarCommonSubproject.get_variable('zlibLibrary')
+SDL2_TTFDependency = jaffarCommonSubproject.get_variable('SDL2_TTFDependency')
 
 # Loading dependencies
 subdir('source')

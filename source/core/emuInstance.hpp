@@ -353,7 +353,7 @@ class EmuInstance
   __INLINE__ void configHandler(struct retro_variable *var)
   {
     var->value = nullptr;
-    printf("Variable Name: %s / Value: %s\n", var->key, var->value);
+    //printf("Variable Name: %s / Value: %s\n", var->key, var->value);
     std::string key(var->key);
   }
 

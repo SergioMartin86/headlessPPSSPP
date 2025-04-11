@@ -756,7 +756,7 @@ ppssppCompileArgs = [
 	'-D_POSIX_C_SOURCE=200112L',
 	'-D_XOPEN_SOURCE_EXTENDED',
 	'-D__BSD_VISIBLE=1',
-	'-D__LIBRETRO__',
+	#'-D__LIBRETRO__',
 	'-D__STDC_CONSTANT_MACROS',
 	'-DSTACK_LINE_READER_BUFFER_SIZE=1024',
 	'-DSFMT_MEXP=19937',
@@ -771,6 +771,7 @@ ppssppCompileArgs = [
 	'-Dppsspp_libretro_EXPORTS',
 	'-DNO_ARMIPS',
 	'-DZSTD_DISABLE_ASM',
+	'-DUSE_SDL2_TTF',
 ]
 
 # ppsspp Core Configuration
@@ -782,5 +783,6 @@ ppssppCompileArgs = [
   sources             : [ ppssppSrc ],
   dependencies        : [  
                           dependency('sdl2',  required : true),
+						  SDL2_TTFDependency
                         ]
  )
